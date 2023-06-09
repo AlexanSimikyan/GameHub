@@ -3,13 +3,18 @@ package com.example.gamehub;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.example.gamehub.G2048Classes.G2048;
 
@@ -19,12 +24,39 @@ public class Game2048 extends AppCompatActivity {
     public char getDirection(double[] first, double[] second){
         double DX = first[0] - second[0];
         double DY = first[1] - second[1];
-
-        if( Math.abs(DX) <= Math.abs(DY) && DX < 0)return 'l';
-        if( Math.abs(DX) <= Math.abs(DY) && DX > 0)return 'r';
-        if( Math.abs(DX) >= Math.abs(DY) && DY > 0)return 'u';
-        if( Math.abs(DX) >= Math.abs(DY) && DY < 0)return 'd';
-        return 'n';
+        double a = getAngle(first, second);
+        if (a > - (Math.PI/4) && a < (Math.PI/4))return 'r';
+        if (a >= (Math.PI/4) && a < (3*Math.PI/4))return 'd';
+        if (a > (3*Math.PI/4) && a < (5*Math.PI/4))return 'l';
+        return 'u';
+    }
+    public double getDistance(double[] first, double[] second){
+        return Math.sqrt((first[0] - second[0])*(first[0] - second[0]) + (first[1] - second[1])*(first[1] - second[1]));
+    }
+    public double getAngle(double[] first, double[] second){
+        double DX = first[0] - second[0];
+        double DY = first[1] - second[1];
+        double angle = 0;
+        if(DX != 0 && DY != 0){
+            if(DX > 0){
+                angle = Math.PI + Math.atan(DY/DX);
+            }else{
+                angle = Math.atan(DY/DX);
+            }
+        }if(DX == 0){
+            if(DY > 0){
+                angle = 1.5 * Math.PI;
+            }else{
+                angle = 0.5 * Math.PI;
+            }
+        }if(DY == 0){
+            if(DX > 0){
+                angle = Math.PI;
+            }else{
+                angle = 0;
+            }
+        }
+        return angle;
     }
 
 
@@ -117,23 +149,71 @@ public class Game2048 extends AppCompatActivity {
     }
 
 
-    public void drawBoard(int[][] map, SurfaceHolder holder){
-
-    }
 
     int size = 5;
     double[] startPos = new double[2];
     double[] newPos = new double[2];
-
     int x,y;
     int[][] game_map = new int[size][size];
-    SurfaceView surfaceView;
-    SurfaceHolder surfaceHolder;
-    Bitmap bitmap;
-    G2048 g2048;
-    Graphics graphics;
-    int bitmap_height = 100;
-    int bitmap_width = 100;
+
+    ImageView[][] map ;
+
+
+
+    public void drawMap(){
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                switch (game_map[i][j]){
+                    case 0:
+                        map[i][j].setBackgroundResource(R.drawable.box0);
+                        break;
+                    case 2:
+
+                        map[i][j].setBackgroundResource(R.drawable.box2);
+                        break;
+                    case 4:
+
+                        map[i][j].setBackgroundResource(R.drawable.box4);
+                        break;
+                    case 8:
+
+                        map[i][j].setBackgroundResource(R.drawable.box8);
+                        break;
+                    case 16:
+                        map[i][j].setBackgroundResource(R.drawable.box16);
+                        break;
+                    case 32:
+
+                        map[i][j].setBackgroundResource(R.drawable.box32);
+                        break;
+                    case 64:
+
+                        map[i][j].setBackgroundResource(R.drawable.box64);
+                        break;
+                    case 128:
+
+                        map[i][j].setBackgroundResource(R.drawable.box128);
+                        break;
+                    case 256:
+                        map[i][j].setBackgroundResource(R.drawable.box256);
+                        break;
+                    case 512:
+
+                        map[i][j].setBackgroundResource(R.drawable.box512);
+                        break;
+                    case 1024:
+
+                        map[i][j].setBackgroundResource(R.drawable.box1024);
+                        break;
+                    case 2048:
+
+                        map[i][j].setBackgroundResource(R.drawable.box2048);
+                        break;
+                }
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,20 +223,39 @@ public class Game2048 extends AppCompatActivity {
                 i = 0;
             }
         }
+        LinearLayout layout = findViewById(R.id.mainLayout);
+        ViewGroup.LayoutParams params = layout.getLayoutParams();
+        LinearLayout layout_top = findViewById(R.id.Top);
+        ViewGroup.LayoutParams params_top = layout_top.getLayoutParams();
 
-        surfaceView = findViewById(R.id.G2048Surface);
-        surfaceHolder = surfaceView.getHolder();
-        bitmap = Bitmap.createBitmap(bitmap_width, bitmap_height, Bitmap.Config.ARGB_8888);
-        g2048 = new G2048(bitmap, surfaceView);
-        g2048.startGame();
-        graphics = new Graphics(getAssets(), bitmap);
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        int width = displayMetrics.widthPixels;
+        int t = Math.min(width, height);
+
+        params.height = (int)(1.5 * t);
+        params.width = t;
+        params_top.height =(height-t)/2;
+        layout_top.setLayoutParams(params_top);
+        layout.setLayoutParams(params);
+
+        map = new ImageView[][]{{findViewById(R.id.l1e1), findViewById(R.id.l1e2), findViewById(R.id.l1e3), findViewById(R.id.l1e4),findViewById(R.id.l1e5)},
+                {findViewById(R.id.l2e1), findViewById(R.id.l2e2), findViewById(R.id.l2e3), findViewById(R.id.l2e4),findViewById(R.id.l2e5)},
+                {findViewById(R.id.l3e1), findViewById(R.id.l3e2), findViewById(R.id.l3e3), findViewById(R.id.l3e4),findViewById(R.id.l3e5)},
+                {findViewById(R.id.l4e1), findViewById(R.id.l4e2), findViewById(R.id.l4e3), findViewById(R.id.l4e4),findViewById(R.id.l4e5)},
+                {findViewById(R.id.l5e1), findViewById(R.id.l5e2), findViewById(R.id.l5e3), findViewById(R.id.l5e4),findViewById(R.id.l5e5)},};
+
+
+
         x = (int)(Math.random()* game_map.length);
         y = (int)(Math.random()* game_map.length);
         game_map[x][y] = 2;
         x = (int)(Math.random()* game_map.length);
         y = (int)(Math.random()* game_map.length);
         game_map[x][y] = 2;
-
+        drawMap();
     }
 
     @Override
@@ -167,48 +266,20 @@ public class Game2048 extends AppCompatActivity {
                 startPos[0] = event.getX();
                 startPos[1] = event.getY();
                 break;
-            case MotionEvent.ACTION_MOVE:
+            case MotionEvent.ACTION_UP:
+
                 newPos[0] = event.getX();
                 newPos[1] = event.getY();
-                break;
-            case MotionEvent.ACTION_UP:
                 makeMove(game_map, getDirection(startPos, newPos));
 
-                System.out.println(getDirection(startPos, newPos));
+                //System.out.println(getDirection(startPos, newPos) + " " + startPos[0] + " ");
                 do {
                     x = (int)(Math.random()* game_map.length);
                     y = (int)(Math.random()* game_map.length);
                 }while(game_map[x][y] != 0);
 
                 game_map[x][y] = 2;
-                double rectSize = bitmap_height/size;
-                for (int i = 0; i < size; i++) {
-                    for (int j = 0; j < size; j++) {
-                        switch (game_map[i][j]){
-                            case 0:
-                                graphics.drawRect((int)(i*rectSize), (int)(j*rectSize), (int)((i+1)*rectSize), (int)((j+1)*rectSize), Color.argb(255, 255, 235,133));
-                                break;
-                            case 2:
-                                graphics.drawRect((int)(i*rectSize), (int)(j*rectSize), (int)((i+1)*rectSize), (int)((j+1)*rectSize), Color.argb(255, 255, 194,133));
-                                graphics.drawText("2",(int)(i*rectSize), (int)(j*rectSize), Color.BLACK, 30, Typeface.DEFAULT);
-                                break;
-                            case 4:
-                                graphics.drawRect((int)(i*rectSize), (int)(j*rectSize), (int)((i+1)*rectSize), (int)((j+1)*rectSize), Color.argb(255, 255,  168,133));
-                                graphics.drawText("4",(int)(i*rectSize), (int)(j*rectSize), Color.BLACK, 30, Typeface.DEFAULT);
-                                break;
-                            case 8:
-                                graphics.drawRect((int)(i*rectSize), (int)(j*rectSize), (int)((i+1)*rectSize), (int)((j+1)*rectSize), Color.argb(255, 224,  118,99));
-                                graphics.drawText("8",(int)(i*rectSize), (int)(j*rectSize), Color.BLACK, 30, Typeface.DEFAULT);
-                                break;
-                        }
-
-                    }
-                }
-                for (int[] line: game_map) {
-                    for( int i: line){
-                        System.out.print(i);
-                    }
-                }
+                drawMap();
 
 
         }

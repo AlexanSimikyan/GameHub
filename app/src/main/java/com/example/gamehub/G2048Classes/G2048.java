@@ -70,5 +70,16 @@ public class G2048 implements Runnable{
         Running = true;
         GameThread = new Thread(this);
         GameThread.start();
+    }public void stopGame() {
+        if (!Running) {
+            return;
+        }
+        Running = false;
+
+        try {
+            GameThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
